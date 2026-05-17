@@ -6,7 +6,7 @@ from preprocess import preprocess_data
 
 sns.set_theme()
 sns.set_style("whitegrid")
-# sns.set_context("talk")
+sns.set_palette(palette='RdPu', n_colors=2)
 
 def analyze_age_distribution(data):
     counts = data.groupby(['age_group', 'gender'], observed=True).size().unstack(fill_value=0)
@@ -16,10 +16,10 @@ def analyze_age_distribution(data):
     proportions = counts.div(n_age, axis=0)
     margin_pct = z * (proportions * (1 - proportions)).div(n_age, axis=0) ** 0.5 * 100
 
-    age_groups = counts.index.astype(str).tolist()
+    genders = counts.columns.astype(str).tolist()
+    age_groups = counts.index.tolist()
     x = list(range(len(age_groups)))
-    width = 0.35
-    genders = counts.columns.tolist()
+    width = 0.8 / len(genders)
 
     fig, ax = plt.subplots(figsize=(12, 6))
     for i, gender in enumerate(genders):
@@ -38,7 +38,7 @@ def analyze_age_distribution(data):
     ax.set_title('Gender Distribution by Age Group with 95% Confidence Intervals')
     ax.set_xticks(x)
     ax.set_xticklabels(age_groups, rotation=45)
-    ax.legend(title='Gender')
+    ax.legend(title='Gender', loc='center left', bbox_to_anchor=(1, 0.5))
     plt.tight_layout()
     plt.show()
 
