@@ -1,5 +1,8 @@
+from preprocess import preprocess_data
+
 def main():
-    print("Hello from randys!")
+    processed_data = preprocess_data('survey_data.csv')
+    print(processed_data.head())
 
 
 if __name__ == "__main__":

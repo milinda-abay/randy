@@ -32,16 +32,30 @@ def preprocess_data(file_path):
 
     # Rename columns for better readability
     data = data.rename(columns=rename_columns)
-
     data = data.convert_dtypes()
 
-    for col in data.columns:
-        if col != 'response_id':
-            data[col] = data[col].astype('category')
+    category_dtypes = {
+        'gender': pd.CategoricalDtype(categories=['Female', 'Male'], ordered=False),
+        'age_group': pd.CategoricalDtype(categories=['18-24', '25-34', '35-44', '45-54', '55-64', 'over 65'], ordered=True),
+        'password_length': pd.CategoricalDtype(categories=['Less than 8 characters', '8-12 characters', '12-16 characters', 'More that 16 characters'], ordered=True),
+        'password_inclusion': pd.CategoricalDtype(categories=['only symbols', 'only letters', 'letters and numbers', 'letters, numbers and symbols', 'A passphrase'], ordered=True),
+        'password_reuse': pd.CategoricalDtype(categories=['Never', 'Sometimes', 'Often', 'Always'], ordered=True),
+        'password_change': pd.CategoricalDtype(categories=['Never', 'Sometimes', 'Often', 'Always'], ordered=True),
+        'password_storage': pd.CategoricalDtype(categories=["I don't store my password anywhere", 'on a sticky note', 'In a book/diary', 'on my phone notes app', 'on a document', 'on password Manager'], ordered=True),
+        'shared_passwords': pd.CategoricalDtype(categories=['Yes', 'No'], ordered=False),
+        'password_sharing': pd.CategoricalDtype(categories=['Yes', 'No'], ordered=False),
+        'password_consistency': pd.CategoricalDtype(categories=['Very unlikely', 'Somewhat unlikely', 'Somewhat likely', 'Very likely'], ordered=True),
+        'password_creation': pd.CategoricalDtype(categories=['I create my own password', 'I use password generation tool', 'other'], ordered=False),
+    }
 
-    data['gender'] = data['gender'].astype('category')
+    data['password_change'] = data['password_change'].str.capitalize()
+    data['password_consistency'] = data['password_consistency'].str.replace('very unlikely', 'Very unlikely', regex=False)
+
+    for col, dtype in category_dtypes.items():
+        data[col] = data[col].astype(dtype)
 
     return data
 
 if __name__ == "__main__":
     processed_data = preprocess_data(FILE_PATH)
+    processed_data.to_csv('processed_survey_data.csv', index=False)
