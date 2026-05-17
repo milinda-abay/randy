@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
+from utils.folders import DATA_DIR
 
 rename_columns = {
     'Response ID': "response_id",
@@ -30,22 +30,30 @@ def preprocess_data(file_path=None):
     data = data.rename(columns=rename_columns)
     data = data.convert_dtypes()
 
+    for col in ["password_inclusion", "password_change", "password_storage", "password_creation", "password_consistency"]:
+        data[col] = data[col].str.capitalize()
+    data['password_consistency'] = data['password_consistency'].str.replace('very unlikely', 'Very unlikely', regex=False)
+
+    
+    data = data.dropna(how='all',subset = data.columns.difference(['response_id'])).reset_index(drop=True)
+
     category_dtypes = {
         'gender': pd.CategoricalDtype(categories=['Female', 'Male'], ordered=False),
         'age_group': pd.CategoricalDtype(categories=['18-24', '25-34', '35-44', '45-54', '55-64', 'over 65'], ordered=True),
         'password_length': pd.CategoricalDtype(categories=['Less than 8 characters', '8-12 characters', '12-16 characters', 'More that 16 characters'], ordered=True),
-        'password_inclusion': pd.CategoricalDtype(categories=['only symbols', 'only letters', 'letters and numbers', 'letters, numbers and symbols', 'A passphrase'], ordered=True),
+        'password_inclusion': pd.CategoricalDtype(categories=['Only symbols', 'Only letters', 'Letters and numbers', 'Letters, numbers and symbols', 'A passphrase'], ordered=True),
         'password_reuse': pd.CategoricalDtype(categories=['Never', 'Sometimes', 'Often', 'Always'], ordered=True),
         'password_change': pd.CategoricalDtype(categories=['Never', 'Sometimes', 'Often', 'Always'], ordered=True),
-        'password_storage': pd.CategoricalDtype(categories=["I don't store my password anywhere", 'on a sticky note', 'In a book/diary', 'on my phone notes app', 'on a document', 'on password Manager'], ordered=True),
+        'password_storage': pd.CategoricalDtype(categories=["I don't store my password anywhere", 'On a sticky note', 'In a book/diary', 'On my phone notes app', 'On a document', 'On password manager'], ordered=True),
         'shared_passwords': pd.CategoricalDtype(categories=['Yes', 'No'], ordered=False),
         'password_sharing': pd.CategoricalDtype(categories=['Yes', 'No'], ordered=False),
         'password_consistency': pd.CategoricalDtype(categories=['Very unlikely', 'Somewhat unlikely', 'Somewhat likely', 'Very likely'], ordered=True),
-        'password_creation': pd.CategoricalDtype(categories=['I create my own password', 'I use password generation tool', 'other'], ordered=False),
+        'password_creation': pd.CategoricalDtype(categories=['I create my own password', 'I use password generation tool', 'Other'], ordered=False),
     }
 
-    data['password_change'] = data['password_change'].str.capitalize()
-    data['password_consistency'] = data['password_consistency'].str.replace('very unlikely', 'Very unlikely', regex=False)
+    
+
+    
 
     for col, dtype in category_dtypes.items():
         data[col] = data[col].astype(dtype)

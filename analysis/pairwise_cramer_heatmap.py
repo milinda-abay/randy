@@ -17,9 +17,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.stats import chi2_contingency
+from utils.folders import FIGURES_DIR
 
-FIGURES_DIR = Path(__file__).resolve().parent.parent / 'figures'
-FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
+
 
 LABELS = {
     "gender":               "Gender",

@@ -25,20 +25,9 @@ def plot_grouped_bar(data, x_col, bar_col, palette='RdPu', figsize=(14, 6)):
     counts = data.groupby([x_col, bar_col], observed=True).size().unstack(fill_value=0)
 
     z = 1.96
-    z2 = z ** 2
     n_x = counts.sum(axis=1)
     proportions = counts.div(n_x, axis=0)
-
-    denominator = 1 + z2 / n_x
-    center = proportions.add(z2 / (2 * n_x), axis=0).div(denominator, axis=0)
-    half_width = (
-        z * (proportions * (1 - proportions)).div(n_x, axis=0)
-        .add(z2 / (4 * n_x ** 2), axis=0)
-        .pow(0.5)
-        .div(denominator, axis=0)
-    )
-    lower = (center - half_width).clip(lower=0) * 100
-    upper = (center + half_width).clip(upper=1) * 100
+    margin_pct = z * (proportions * (1 - proportions)).div(n_x, axis=0) ** 0.5 * 100
 
     bar_levels = counts.columns.astype(str).tolist()
     x_labels = counts.index.tolist()
@@ -55,7 +44,7 @@ def plot_grouped_bar(data, x_col, bar_col, palette='RdPu', figsize=(14, 6)):
             proportions[level] * 100,
             width,
             label=level,
-            yerr=_wilson_yerr(proportions[level], lower[level], upper[level]),
+            yerr=margin_pct[level],
             capsize=5,
         )
 

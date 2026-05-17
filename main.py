@@ -1,25 +1,22 @@
 from utils.preprocess import preprocess_data
-from analysis.distributions import (
-    analyze_age_distribution,
-    analyze_password_reuse_by_age,
-    analyze_password_length_by_age,
-    analyze_password_inclusion_by_age,
-    analyze_password_reuse_by_password_change,
-)
-from analysis import chi_squared, mca, pairwise_cramer_heatmap
+from analysis import distributions
+
+
+from analysis import chi_squared, pairwise_cramer_heatmap
 
 
 def main():
     data = preprocess_data()
 
-    analyze_age_distribution(data)
-    analyze_password_reuse_by_age(data)
-    analyze_password_length_by_age(data)
-    analyze_password_inclusion_by_age(data)
-    analyze_password_reuse_by_password_change(data)
+    distributions.run(data)
 
-    chi_squared.run(data)
-    mca.run(data)
+
+    chi_squared.run(data, predictor='gender', target='password_storage')
+    chi_squared.run(data, predictor='password_reuse', target='password_change')
+    chi_squared.run(data, predictor='age_group', target='password_reuse')
+    chi_squared.run(data, predictor='age_group', target='password_length')
+    chi_squared.run(data, predictor='password_reuse', target='password_consistency')
+    chi_squared.run(data, predictor='shared_passwords', target='password_sharing')
     pairwise_cramer_heatmap.run(data)
 
 
