@@ -61,6 +61,51 @@ def plot_grouped_bar(data, x_col, bar_col, palette='RdPu', figsize=(14, 6)):
     plt.show()
 
 
+def plot_likert(data, col, group_col='age_group', palette='RdPu', figsize=(12, 6)):
+    counts = data.groupby([group_col, col], observed=True).size().unstack(fill_value=0)
+    cats = data[col].cat.categories.tolist()
+    counts = counts.reindex(columns=cats, fill_value=0)
+    props = counts.div(counts.sum(axis=1), axis=0) * 100
+
+    n = len(cats)
+    left_cats = cats[:n // 2]
+    right_cats = cats[n // 2:]
+
+    colors = sns.color_palette(palette, n_colors=n)
+    cat_colors = dict(zip(cats, colors))
+
+    groups = counts.index.tolist()
+    y = list(range(len(groups)))
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    left_start = [0.0] * len(groups)
+    for cat in reversed(left_cats):
+        vals = props[cat].values
+        ax.barh(y, -vals, left=[-s for s in left_start], color=cat_colors[cat])
+        left_start = [s + v for s, v in zip(left_start, vals)]
+
+    right_start = [0.0] * len(groups)
+    for cat in right_cats:
+        vals = props[cat].values
+        ax.barh(y, vals, left=right_start, color=cat_colors[cat])
+        right_start = [s + v for s, v in zip(right_start, vals)]
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(groups)
+    ax.axvline(0, color='black', linewidth=0.8)
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{abs(x):.0f}%'))
+    ax.set_xlabel('Percentage (%)')
+    ax.set_ylabel(_to_title(group_col))
+    ax.set_title(f'{_to_title(col)} by {_to_title(group_col)}')
+
+    handles = [plt.Rectangle((0, 0), 1, 1, color=cat_colors[c]) for c in cats]
+    ax.legend(handles, cats, title=_to_title(col), loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / f'{col}_by_{group_col}_likert.png', bbox_inches='tight')
+    plt.show()
+
+
 def plot_heatmap(data, row_col, col_col, cmap='RdPu', figsize=(7, 6)):
     ct = pd.crosstab(data[row_col], data[col_col])
 
@@ -69,15 +114,19 @@ def plot_heatmap(data, row_col, col_col, cmap='RdPu', figsize=(7, 6)):
     if data[col_col].cat.ordered:
         ct = ct.loc[:, ::-1]
 
+    pct = ct / ct.values.sum() * 100
+    annot = ct.astype(str) + '\n(' + pct.round(1).astype(str) + '%)'
+
     row_label = _to_title(row_col)
     col_label = _to_title(col_col)
 
     fig, ax = plt.subplots(figsize=figsize)
-    sns.heatmap(ct, annot=True, fmt='d', cmap=cmap, ax=ax,
-                cbar_kws={'label': 'Count'})
+    sns.heatmap(pct, annot=annot, fmt='', cmap=cmap, ax=ax,
+                cbar_kws={'label': 'Percentage (%)'})
     ax.set_xlabel(col_label)
     ax.set_ylabel(row_label)
     ax.set_title(f'{row_label} vs {col_label}')
     plt.tight_layout()
     plt.savefig(FIGURES_DIR / f'{row_col}_vs_{col_col}.png', bbox_inches='tight')
     plt.show()
+

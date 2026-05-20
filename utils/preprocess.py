@@ -21,13 +21,19 @@ rename_columns = {
 
 def preprocess_data(file_path=None):
     if file_path is None:
-        file_path = DATA_DIR / 'survey_data.csv'
+        file_path = DATA_DIR / 'datafile_classification.csv'
 
     data = pd.read_csv(file_path)
     data = data.drop(columns=['Consent', 'Q6', 'Q8', 'Q9', 'Q10', 'Q13', 'Q15', 'Q18', 'Q19', 'Q20', 'Q21', 'Q22', 'Q23'])
     data.columns = list(data.iloc[0])
     data = data.drop([0, 1]).reset_index(drop=True)
     data = data.rename(columns=rename_columns)
+
+    cols = list(data.columns)
+    cols[12] = "improvement"
+    cols[13] = "intention"
+    data.columns = cols
+
     data = data.convert_dtypes()
 
     for col in ["password_inclusion", "password_change", "password_storage", "password_creation", "password_consistency"]:
@@ -49,9 +55,9 @@ def preprocess_data(file_path=None):
         'password_sharing': pd.CategoricalDtype(categories=['Yes', 'No'], ordered=False),
         'password_consistency': pd.CategoricalDtype(categories=['Very unlikely', 'Somewhat unlikely', 'Somewhat likely', 'Very likely'], ordered=True),
         'password_creation': pd.CategoricalDtype(categories=['I create my own password', 'I use password generation tool', 'Other'], ordered=False),
+        'improvement': pd.CategoricalDtype(categories=['No improvement', 'Moderate improvement', 'Substantial improvement'], ordered=False),
+        'intention': pd.CategoricalDtype(categories=['No will not change', 'No change', 'Maybe - Might change', 'Yes will change'], ordered=True),
     }
-
-    
 
     
 
@@ -63,4 +69,4 @@ def preprocess_data(file_path=None):
 
 if __name__ == "__main__":
     processed_data = preprocess_data()
-    processed_data.to_csv(DATA_DIR / 'processed_survey_data.csv', index=False)
+    processed_data.to_csv(DATA_DIR / 'processed_datafile_classification.csv', index=False)
